@@ -96,6 +96,8 @@ object KafkaDirectWordCountV2 {
     //直连方式只有在KafkaDStream的RDD中才能获取偏移量，那么就不能到调用DStream的Transformation
     //所以只能在kafkaStream调用foreachRDD，获取RDD的偏移量，然后就是对RDD进行操作了
     //依次迭代KafkaDStream中的KafkaRDD
+
+    //如果使用直连方式累加数据，那么就要在外部的数据库中进行累加（用KeyValue的内存数据库Redis-->NoSQL数据库）
     kafkaStream.foreachRDD { kafkaRDD =>
 
       //只有KafkaRDD可以强转成HasOffsetRanges，并获取到偏移量
