@@ -93,7 +93,7 @@ object KafkaDirectWordCountV2 {
     var offsetRanges = Array[OffsetRange]()
 
     //直连方式只有在KafkaDStream的RDD中才能获取偏移量，那么就不能到调用DStream的Transformation
-    //所以只能子在kafkaStream调用foreachRDD，获取RDD的偏移量，然后就是对RDD进行操作了
+    //所以只能在kafkaStream调用foreachRDD，获取RDD的偏移量，然后就是对RDD进行操作了
     //依次迭代KafkaDStream中的KafkaRDD
     kafkaStream.foreachRDD { kafkaRDD =>
 
