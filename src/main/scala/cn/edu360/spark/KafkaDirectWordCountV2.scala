@@ -96,6 +96,7 @@ object KafkaDirectWordCountV2 {
     //所以只能子在kafkaStream调用foreachRDD，获取RDD的偏移量，然后就是对RDD进行操作了
     //依次迭代KafkaDStream中的KafkaRDD
     kafkaStream.foreachRDD { kafkaRDD =>
+
       //只有KafkaRDD可以强转成HasOffsetRanges，并获取到偏移量
       offsetRanges = kafkaRDD.asInstanceOf[HasOffsetRanges].offsetRanges
       val lines: RDD[String] = kafkaRDD.map(_._2)
