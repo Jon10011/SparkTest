@@ -1,5 +1,6 @@
 package cn.edu360.demo
 
+import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
 import redis.clients.jedis.Jedis
 
@@ -49,18 +50,50 @@ object CalculateUtil {
     //将当前批次数据累加到Redis数据库中
     //foreachPartition是一个Action
     reduced.foreachPartition(part => {
-      //获取一个Jedis连接
+      //获取一个Jedis连接(在每一个executor端获取conn)
       val conn = JedisConnectionPool.getConnection()
       part.foreach(t => {
+        //一个连接更新多条数据
         conn.incrByFloat(t._1,t._2)
       })
-
+      //当前分区数据更新完成，连接池关闭
+      conn.close()
     })
 
     
   }
 
-  def calculateZone(fields: RDD[Array[String]]) = {
+  def calculateZone(fields: RDD[Array[String]],broadcastRef:Broadcast[Array[(Long, Long, String)]) = {
+    val provinceAndPrice: RDD[(String, Double)] = fields.map(arr => {
+      val ip = arr(1)
+      val price = arr(4).toDouble
+      val ipNum = MyUtils.ip2Long(ip)
 
+      //在Executor中获取到广播的全部规则
+      val allRules: Array[(Long, Long, String)] = broadcastRef.value
+
+      //二分法查找
+      val index = MyUtils.binarySearch(allRules, ipNum)
+
+      var province = "未知"
+      if (index != -1) {
+        province = allRules(index)._3
+      }
+      //返回省份，订单金额
+      (province, price)
+
+    })
+    //按省份进行聚合
+    val reduced: RDD[(String, Double)] = provinceAndPrice.reduceByKey(_+_)
+    reduced.foreachPartition(part => {
+      //获取jedis连接
+      val conn = JedisConnectionPool.getConnection()
+      //将数据更新到redis
+      part.foreach(t =>{
+        conn.incrByFloat(t._1,t._2)
+      })
+      //关闭Redis连接
+      conn.close()
+    })
   }
 }

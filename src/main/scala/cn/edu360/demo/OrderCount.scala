@@ -6,6 +6,7 @@ import kafka.serializer.StringDecoder
 import kafka.utils.{ZKGroupTopicDirs, ZkUtils}
 import org.I0Itec.zkclient.ZkClient
 import org.apache.spark.SparkConf
+import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.dstream.InputDStream
 import org.apache.spark.streaming.kafka.{HasOffsetRanges, KafkaUtils, OffsetRange}
@@ -25,6 +26,14 @@ object KafkaDirectWordCountV2 {
     val conf = new SparkConf().setAppName("KafkaDirectWordCount").setMaster("local[2]")
     //创建SparkStreaming，并设置间隔时间
     val ssc = new StreamingContext(conf, Duration(5000))
+
+
+    //广播ip
+
+    val broadcastRef: Broadcast[Array[(Long, Long, String)]] = IPUtils.broadcastIpRules(ssc,args(0))
+
+
+
     //指定消费的 topic 名字
     val topic = "wwcc"
     //指定kafka的broker地址(sparkStream的Task直连到kafka的分区上，用更加底层的API消费，效率更高)
@@ -113,6 +122,10 @@ object KafkaDirectWordCountV2 {
       CalculateUtil.calculateIncome(fields)
       //计算商品分类金额
       CalculateUtil.calculateItem(fields)
+
+      //计算区域成交金额
+      CalculateUtil.calculateZone(fields,broadcastRef)
+
       //打标签
 
       for (o <- offsetRanges) {
