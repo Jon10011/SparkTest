@@ -16,7 +16,7 @@ object JedisConnectionPool{
   //当调用borrow Object方法时，是否进行有效性检查 -->
   config.setTestOnBorrow(true)
   //10000代表超时时间（10秒）
-  val pool = new JedisPool(config, "192.168.1.207", 6379, 10000, "123")
+  val pool = new JedisPool(config, "192.168.1.113", 6379, 10000, "songdong123")
 
   def getConnection(): Jedis = {
     pool.getResource
