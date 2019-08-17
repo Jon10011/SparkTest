@@ -63,7 +63,7 @@ object CalculateUtil {
     
   }
 
-  def calculateZone(fields: RDD[Array[String]],broadcastRef:Broadcast[Array[(Long, Long, String)]) = {
+  def calculateZone(fields: RDD[Array[String]],broadcastRef:Broadcast[Array[(Long, Long, String)]]) = {
     val provinceAndPrice: RDD[(String, Double)] = fields.map(arr => {
       val ip = arr(1)
       val price = arr(4).toDouble
