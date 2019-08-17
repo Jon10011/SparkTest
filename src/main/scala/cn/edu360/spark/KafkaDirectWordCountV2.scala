@@ -64,6 +64,7 @@ object KafkaDirectWordCountV2 {
     var fromOffsets: Map[TopicAndPartition, Long] = Map()
 
     //如果保存过 offset
+    //注意偏移量的查询是在Deriver端进行的
     if (children > 0) {
       for (i <- 0 until children) {
         // /g001/offsets/wordcount/0/10001
