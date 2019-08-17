@@ -23,7 +23,7 @@ object KafkaDirectWordCountV2 {
     //指定组名
     val group = "g001"
     //创建SparkConf
-    val conf = new SparkConf().setAppName("KafkaDirectWordCount").setMaster("local[2]")
+    val conf = new SparkConf().setAppName("OrderCount").setMaster("local[2]")
     //创建SparkStreaming，并设置间隔时间
     val ssc = new StreamingContext(conf, Duration(5000))
 
@@ -35,7 +35,7 @@ object KafkaDirectWordCountV2 {
 
 
     //指定消费的 topic 名字
-    val topic = "wwcc"
+    val topic = "orders"
     //指定kafka的broker地址(sparkStream的Task直连到kafka的分区上，用更加底层的API消费，效率更高)
     val brokerList = "node-4:9092,node-5:9092,node-6:9092"
 
@@ -109,31 +109,33 @@ object KafkaDirectWordCountV2 {
 
     //如果使用直连方式累加数据，那么就要在外部的数据库中进行累加（用KeyValue的内存数据库Redis-->NoSQL数据库）
     kafkaStream.foreachRDD { kafkaRDD =>
+      if(kafkaRDD.isEmpty()){
+        //只有KafkaRDD可以强转成HasOffsetRanges，并获取到偏移量
+        offsetRanges = kafkaRDD.asInstanceOf[HasOffsetRanges].offsetRanges
+        val lines: RDD[String] = kafkaRDD.map(_._2)
 
-      //只有KafkaRDD可以强转成HasOffsetRanges，并获取到偏移量
-      offsetRanges = kafkaRDD.asInstanceOf[HasOffsetRanges].offsetRanges
-      val lines: RDD[String] = kafkaRDD.map(_._2)
+        //整理数据
+        val fields: RDD[Array[String]] = lines.map(_.split(" "))
 
-      //整理数据
-      val fields: RDD[Array[String]] = lines.map(_.split(" "))
+        //对RDD进行操作，触发Action
+        //计算成交金额
+        CalculateUtil.calculateIncome(fields)
+        //计算商品分类金额
+        CalculateUtil.calculateItem(fields)
 
-      //对RDD进行操作，触发Action
-      //计算成交金额
-      CalculateUtil.calculateIncome(fields)
-      //计算商品分类金额
-      CalculateUtil.calculateItem(fields)
+        //计算区域成交金额
+        CalculateUtil.calculateZone(fields,broadcastRef)
 
-      //计算区域成交金额
-      CalculateUtil.calculateZone(fields,broadcastRef)
+        //打标签
 
-      //打标签
+        for (o <- offsetRanges) {
+          //  /g001/offsets/wordcount/0
+          val zkPath = s"${topicDirs.consumerOffsetDir}/${o.partition}"
+          //将该 partition 的 offset 保存到 zookeeper
+          //  /g001/offsets/wordcount/0/20000
+          ZkUtils.updatePersistentPath(zkClient, zkPath, o.untilOffset.toString)
+        }
 
-      for (o <- offsetRanges) {
-        //  /g001/offsets/wordcount/0
-        val zkPath = s"${topicDirs.consumerOffsetDir}/${o.partition}"
-        //将该 partition 的 offset 保存到 zookeeper
-        //  /g001/offsets/wordcount/0/20000
-        ZkUtils.updatePersistentPath(zkClient, zkPath, o.untilOffset.toString)
       }
     }
 
