@@ -1,4 +1,4 @@
-package cn.edu360.demo
+package cn.edu360.utils
 
 import org.apache.spark.SparkContext
 import org.apache.spark.broadcast.Broadcast

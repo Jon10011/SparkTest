@@ -1,12 +1,8 @@
-package cn.edu360.demo
+package cn.edu360.utils
 
-/**
-  * Created by zx on 2017/10/20.
-  */
 import redis.clients.jedis.{Jedis, JedisPool, JedisPoolConfig}
 
-
-object JedisConnectionPool{
+object JedisConnectionPool {
 
   val config = new JedisPoolConfig()
   //最大连接数,

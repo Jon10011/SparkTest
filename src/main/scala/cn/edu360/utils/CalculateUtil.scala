@@ -1,5 +1,6 @@
-package cn.edu360.demo
+package cn.edu360.utils
 
+import cn.edu360.demo.Constant
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
 import redis.clients.jedis.Jedis
@@ -35,7 +36,7 @@ object CalculateUtil {
     */
   def calculateItem(fields: RDD[Array[String]]) = {
 
-    
+
     val itemAndPrice: RDD[(String, Double)] = fields.map(arr => {
       //分类
       val item = arr(2)
@@ -60,7 +61,7 @@ object CalculateUtil {
       conn.close()
     })
 
-    
+
   }
 
   def calculateZone(fields: RDD[Array[String]],broadcastRef:Broadcast[Array[(Long, Long, String)]]) = {

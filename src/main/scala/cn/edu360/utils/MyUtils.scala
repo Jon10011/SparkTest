@@ -1,4 +1,4 @@
-package cn.edu360.demo
+package cn.edu360.utils
 
 import java.sql.{Connection, DriverManager, PreparedStatement}
 

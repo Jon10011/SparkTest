@@ -1,5 +1,6 @@
 package cn.edu360.demo
 
+import cn.edu360.utils.{CalculateUtil, IPUtils}
 import kafka.common.TopicAndPartition
 import kafka.message.MessageAndMetadata
 import kafka.serializer.StringDecoder
