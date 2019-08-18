@@ -33,7 +33,7 @@ object CustomSort6 {
     //Ordering[(Int, Int)]最终比较的规则格式
     //on[(String, Int, Int)]未比较之前的数据格式
     //(t =>(-t._3, t._2))怎样将规则转换成想要比较的格式
-    implicit val rules = Ordering[(Int, Int)].on[(String, Int, Int)](t =>(-t._3, t._2))
+    implicit val rules: Ordering[(String, Int, Int)] = Ordering[(Int, Int)].on[(String, Int, Int)](t =>(-t._3, t._2))
     val sorted: RDD[(String, Int, Int)] = tpRDD.sortBy(tp => tp)
 
     println(sorted.collect().toBuffer)
