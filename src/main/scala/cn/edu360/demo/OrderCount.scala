@@ -17,31 +17,31 @@ import org.codehaus.jackson.map.deser.std.StringDeserializer
 /**
   * Created by zx on 2017/7/31.
   */
-object KafkaDirectWordCountV2 {
-
+object OrderCount {
 
   def main(args: Array[String]): Unit = {
 
     //指定组名
-    val group = "g001"
+    val group: String = "g001"
     //创建SparkConf
-    val conf = new SparkConf().setAppName("OrderCount").setMaster("local[2]")
+    val conf: SparkConf = new SparkConf().setAppName("OrderCount").setMaster("local[2]")
     //创建SparkStreaming，并设置间隔时间
-    val ssc = new StreamingContext(conf, Duration(5000))
+    val ssc: StreamingContext = new StreamingContext(conf, Duration(5000))
 
 
     //广播ip
 
-    val broadcastRef: Broadcast[Array[(Long, Long, String)]] = IPUtils.broadcastIpRules(ssc, args(0))
+//    val broadcastRef: Broadcast[Array[(Long, Long, String)]] = IPUtils.broadcastIpRules(ssc, "/Users/zx/Desktop/temp/spark-24/spark-4/ip/ip.txt")
+    val broadcastRef: Broadcast[Array[(Long, Long, String)]] = IPUtils.broadcastIpRules(ssc, "/Users/zx/Desktop/temp/spark-24/spark-4/ip/ip.txt")
 
 
     //指定消费的 topic 名字
-    val topic = "orders"
+    val topic = "weblogs"
     //指定kafka的broker地址(sparkStream的Task直连到kafka的分区上，用更加底层的API消费，效率更高)
-    val brokerList = "node-4:9092,node-5:9092,node-6:9092"
+    val brokerList = "hdp-01:9092,hdp-02:9092,hdp-03:9092"
 
     //指定zk的地址，后期更新消费的偏移量时使用(以后可以使用Redis、MySQL来记录偏移量)
-    val zkQuorum = "node-1:2181,node-2:2181,node-3:2181"
+    val zkQuorum = "hdp-01:2181,hdp-02:2181,hdp-03:2181"
     //创建 stream 时使用的 topic 名字集合，SparkStreaming可同时消费多个topic
     val topics: Set[String] = Set(topic)
 
@@ -57,8 +57,8 @@ object KafkaDirectWordCountV2 {
       //从头开始读取数据
       "auto.offset.reset" -> kafka.api.OffsetRequest.SmallestTimeString,
       //可配置参数，编码问题
-      "key.deserializer" -> classOf[StringDeserializer],
-      "value.deserializer" -> classOf[StringDeserializer],
+//      "key.deserializer" -> classOf[StringDeserializer],
+//      "value.deserializer" -> classOf[StringDeserializer],
       "deserializer.encoding" -> "GB2312"//配置读取kafka中的数据的编码
 
 

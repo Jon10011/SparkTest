@@ -1,4 +1,4 @@
-package cn.edu360.spark
+package cn.edu360.sparktest
 
 import org.apache.spark.{HashPartitioner, SparkConf}
 import org.apache.spark.streaming.dstream.{DStream, ReceiverInputDStream}

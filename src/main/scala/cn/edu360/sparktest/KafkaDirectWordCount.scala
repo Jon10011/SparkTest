@@ -1,4 +1,4 @@
-package cn.edu360.spark
+package cn.edu360.sparktest
 
 import kafka.common.TopicAndPartition
 import kafka.message.MessageAndMetadata
