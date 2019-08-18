@@ -1,4 +1,6 @@
-package cn.edu360.day5
+package cn.edu360.utils
+
+import cn.edu360.day5.XianRou
 
 /**
   * Created by zx on 2017/10/10.

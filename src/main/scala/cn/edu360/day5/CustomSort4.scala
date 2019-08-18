@@ -30,7 +30,7 @@ object CustomSort4 {
     })
 
     //排序(传入了一个排序规则，不会改变数据的格式，只会改变顺序)
-    import SortRules.OrderingXiaoRou
+    import cn.edu360.utils.SortRules.OrderingXiaoRou
     val sorted: RDD[(String, Int, Int)] = tpRDD.sortBy(tp => XianRou(tp._2, tp._3))
 
     println(sorted.collect().toBuffer)
