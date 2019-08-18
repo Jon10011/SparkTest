@@ -12,6 +12,7 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.dstream.InputDStream
 import org.apache.spark.streaming.kafka.{HasOffsetRanges, KafkaUtils, OffsetRange}
 import org.apache.spark.streaming.{Duration, StreamingContext}
+import org.codehaus.jackson.map.deser.std.StringDeserializer
 
 /**
   * Created by zx on 2017/7/31.
@@ -31,8 +32,7 @@ object KafkaDirectWordCountV2 {
 
     //广播ip
 
-    val broadcastRef: Broadcast[Array[(Long, Long, String)]] = IPUtils.broadcastIpRules(ssc,args(0))
-
+    val broadcastRef: Broadcast[Array[(Long, Long, String)]] = IPUtils.broadcastIpRules(ssc, args(0))
 
 
     //指定消费的 topic 名字
@@ -55,7 +55,13 @@ object KafkaDirectWordCountV2 {
       "metadata.broker.list" -> brokerList,
       "group.id" -> group,
       //从头开始读取数据
-      "auto.offset.reset" -> kafka.api.OffsetRequest.SmallestTimeString
+      "auto.offset.reset" -> kafka.api.OffsetRequest.SmallestTimeString,
+      //可配置参数，编码问题
+      "key.deserializer" -> classOf[StringDeserializer],
+      "value.deserializer" -> classOf[StringDeserializer],
+      "deserializer.encoding" -> "GB2312"//配置读取kafka中的数据的编码
+
+
     )
 
     //zookeeper 的host 和 ip，创建一个 client,用于跟新偏移量量的
@@ -91,10 +97,10 @@ object KafkaDirectWordCountV2 {
       //Key: kafka的key   values: "hello tom hello jerry"
       //这个会将 kafka 的消息进行 transform，最终 kafak 的数据都会变成 (kafka的key, message) 这样的 tuple
       val messageHandler = (mmd: MessageAndMetadata[String, String]) => (mmd.key(), mmd.message())
-	  
+
       //通过KafkaUtils创建直连的DStream（fromOffsets参数的作用是:按照前面计算好了的偏移量继续消费数据）
-	  //[String, String, StringDecoder, StringDecoder,     (String, String)]
-	  //  key    value    key的解码方式   value的解码方式 
+      //[String, String, StringDecoder, StringDecoder,     (String, String)]
+      //  key    value    key的解码方式   value的解码方式
       kafkaStream = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder, (String, String)](ssc, kafkaParams, fromOffsets, messageHandler)
     } else {
       //如果未保存，根据 kafkaParam 的配置使用最新(largest)或者最旧的（smallest） offset
@@ -110,7 +116,7 @@ object KafkaDirectWordCountV2 {
 
     //如果使用直连方式累加数据，那么就要在外部的数据库中进行累加（用KeyValue的内存数据库Redis-->NoSQL数据库）
     kafkaStream.foreachRDD { kafkaRDD =>
-      if(kafkaRDD.isEmpty()){
+      if (kafkaRDD.isEmpty()) {
         //只有KafkaRDD可以强转成HasOffsetRanges，并获取到偏移量
         offsetRanges = kafkaRDD.asInstanceOf[HasOffsetRanges].offsetRanges
         val lines: RDD[String] = kafkaRDD.map(_._2)
@@ -125,7 +131,7 @@ object KafkaDirectWordCountV2 {
         CalculateUtil.calculateItem(fields)
 
         //计算区域成交金额
-        CalculateUtil.calculateZone(fields,broadcastRef)
+        CalculateUtil.calculateZone(fields, broadcastRef)
 
         //打标签
 
@@ -144,10 +150,6 @@ object KafkaDirectWordCountV2 {
     ssc.awaitTermination()
 
   }
-
-
-
-
 
 
 }
