@@ -27,7 +27,7 @@ object JdbcRddDemo {
     val jdbcRDD: RDD[(Int, String, Int)] = new JdbcRDD(
       sc,
       getConn,
-      "SELECT * FROM logs WHERE id >= ? AND id < ?",
+      "SELECT * FROM logs WHERE id >= ? AND id < =?",
       1,
       5,
       2, //分区数量
