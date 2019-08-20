@@ -18,9 +18,9 @@ object ScalaWordCount {
     //指定以后从哪里读取数据创建RDD（弹性分布式数据集）
     //sc.textFile(args(0)).flatMap(_.split(" ")).map((_, 1)).reduceByKey(_+_).sortBy(_._2, false).saveAsTextFile(args(1))
 
-    val lines: RDD[String] = sc.textFile(args(0))
+    val lines: RDD[String] = sc.textFile("/Users/jon/Desktop/20190820logs.txt")
     //切分压平
-    val words: RDD[String] = lines.flatMap(_.split(" "))
+    val words: RDD[String] = lines.flatMap(_.split("#"))
     println(words)
     //将单词和一组合
     val wordAndOne: RDD[(String, Int)] = words.map((_, 1))
